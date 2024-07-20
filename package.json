@@ -21,8 +21,10 @@
     "@unocss/preset-wind": "^0.61.5",
     "@vitejs/plugin-react": "^4.3.1",
     "eslint": "^8.57.0",
+    "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
+    "eslint-plugin-unused-imports": "^3.2.0",
     "typescript": "^5.2.2",
     "unocss": "^0.61.5",
     "vite": "^5.3.4"
