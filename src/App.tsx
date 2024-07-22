@@ -1,3 +1,5 @@
+import { createContext, useRef } from 'react'
+
 import Panel from './components/Panel'
 
 // prettier-ignore
@@ -18,12 +20,24 @@ const animals = [
   '25 lion', '26 camel'
 ]
 
+export const DragContext = createContext<{
+  chosenItem: React.MutableRefObject<HTMLElement | null>
+  chosenItemIndex: React.MutableRefObject<number | null>
+  chosenItemParent: React.MutableRefObject<HTMLDivElement | null>
+} | null>(null)
+
 export default function App() {
+  const chosenItem = useRef<HTMLElement | null>(null)
+  const chosenItemIndex = useRef<number | null>(null)
+  const chosenItemParent = useRef<HTMLDivElement | null>(null)
+
   return (
-    <div className="bg-gradient-to-br from-blue-500 via-green-500 to-yellow-200">
-      <div className="h-screen my-0 mx-auto p-8 flex place-items-center justify-center text-center gap-8">
-        <Panel items={fruits} />
-        <Panel items={animals.map((v) => v.toUpperCase())} />
+    <div className="bg-gradient-to-br from-blue-500 via-green-500 to-yellow-200 overflow-x-scroll">
+      <div className="w-fit h-screen my-0 mx-auto p-8 flex place-items-center justify-center text-center gap-8">
+        <DragContext.Provider value={{ chosenItem, chosenItemIndex, chosenItemParent }}>
+          <Panel items={fruits} />
+          <Panel items={animals.map((v) => v.toUpperCase())} />
+        </DragContext.Provider>
       </div>
     </div>
   )
