@@ -23,7 +23,7 @@ const animate = (item: HTMLElement, direction: 'up' | 'down') => {
 export default function Panel(props: PanelProps) {
   const draggableList = useRef<HTMLDivElement>(null)
 
-  const { chosenItem, chosenItemIndex, chosenItemParent } = useContext(DragContext)!
+  const { chosenItem, chosenItemIndex, chosenItemParent } = useContext(DragContext)
 
   const getItemIndex = (item: HTMLElement) =>
     Array.from(draggableList.current?.children ?? []).indexOf(item)

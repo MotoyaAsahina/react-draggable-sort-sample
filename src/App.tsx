@@ -24,7 +24,11 @@ export const DragContext = createContext<{
   chosenItem: React.MutableRefObject<HTMLElement | null>
   chosenItemIndex: React.MutableRefObject<number | null>
   chosenItemParent: React.MutableRefObject<HTMLDivElement | null>
-} | null>(null)
+}>({
+  chosenItem: { current: null },
+  chosenItemIndex: { current: null },
+  chosenItemParent: { current: null },
+})
 
 export default function App() {
   const chosenItem = useRef<HTMLElement | null>(null)
