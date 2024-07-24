@@ -1,6 +1,6 @@
 import { createContext, useRef } from 'react'
 
-import Panel from './components/Panel'
+import Panel from '@/components/Panel'
 
 // prettier-ignore
 const fruits = [

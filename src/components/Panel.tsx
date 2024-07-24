@@ -1,6 +1,6 @@
 import { useContext, useRef } from 'react'
 
-import { DragContext } from '../App'
+import { DragContext } from '@/App'
 
 type PanelProps = {
   items: string[]
