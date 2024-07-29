@@ -2,6 +2,7 @@ import { createContext, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import Panel from '@/components/Panel'
+import SimplePanel from '@/components/SimplePanel'
 
 // prettier-ignore
 const fruits = [
@@ -40,7 +41,13 @@ export default function App() {
   const navigate = useNavigate()
 
   if (path == '/simple' || path == '/react-draggable-sort-sample/simple') {
-    return <div>simple</div>
+    return (
+      <div className="bg-gradient-to-br from-blue-500 via-green-500 to-yellow-200 overflow-x-scroll relative">
+        <div className="w-fit h-screen my-0 mx-auto p-8 flex place-items-center justify-center text-center gap-8">
+          <SimplePanel items={fruits} />
+        </div>
+      </div>
+    )
   }
 
   return (
