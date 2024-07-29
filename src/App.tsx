@@ -1,4 +1,5 @@
 import { createContext, useRef } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import Panel from '@/components/Panel'
 
@@ -35,8 +36,34 @@ export default function App() {
   const chosenItemIndex = useRef<number | null>(null)
   const chosenItemParent = useRef<HTMLDivElement | null>(null)
 
+  const path = useLocation().pathname
+  const navigate = useNavigate()
+
+  if (path == '/simple' || path == '/react-draggable-sort-sample/simple') {
+    return <div>simple</div>
+  }
+
   return (
-    <div className="bg-gradient-to-br from-blue-500 via-green-500 to-yellow-200 overflow-x-scroll">
+    <div className="bg-gradient-to-br from-blue-500 via-green-500 to-yellow-200 overflow-x-scroll relative">
+      {/* Button */}
+      <div
+        className="m-10 px-4 py-2 absolute right-0 bottom-0 rounded-md shadow-xl cursor-pointer
+       bg-white hover:bg-blue-50 transition-300"
+        onClick={() =>
+          navigate(
+            path.startsWith('/react-draggable-sort-sample')
+              ? '/react-draggable-sort-sample/simple'
+              : '/simple',
+          )
+        }
+      >
+        <div className="flex items-center text-lg font-200">
+          <p className="flex-1 text-center px-8">Simple version</p>
+          <p>→</p>
+        </div>
+      </div>
+
+      {/* Panels */}
       <div className="w-fit h-screen my-0 mx-auto p-8 flex place-items-center justify-center text-center gap-8">
         <DragContext.Provider value={{ chosenItem, chosenItemIndex, chosenItemParent }}>
           <Panel items={fruits} />
