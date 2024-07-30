@@ -21,6 +21,7 @@ const animate = (item: HTMLElement, direction: 'up' | 'down', sizePercent: numbe
 export default function MultiHeightPanel(props: PanelProps) {
   const draggableList = useRef<HTMLDivElement>(null)
 
+  const hoveringItem = useRef<HTMLElement | null>(null)
   const chosenItem = useRef<HTMLElement | null>(null)
   const chosenItemIndex = useRef<number | null>(null)
 
@@ -42,6 +43,8 @@ export default function MultiHeightPanel(props: PanelProps) {
 
   const dragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     const target = e.currentTarget as HTMLElement
+    hoveringItem.current = target
+
     if (chosenItem.current === target) return
 
     for (const anim of target?.getAnimations() ?? []) {
@@ -151,7 +154,54 @@ export default function MultiHeightPanel(props: PanelProps) {
 
     if (mouseY < largeItemY || mouseY > largeItemBottom) {
       isStayingChangedItem.current = false
-      // TODO: Fix the bug that the item is not animated when the mouse is moved too fast
+
+      if (
+        hoveringItem.current === chosenItem.current ||
+        hoveringItem.current === latestChangedItem.current
+      ) {
+        return
+      }
+
+      const prevIndex = chosenItemIndex.current!
+      if (prevIndex < getItemIndex(hoveringItem.current!)) {
+        hoveringItem.current!.after(chosenItem.current!)
+        chosenItemIndex.current = getItemIndex(chosenItem.current!)
+
+        getItemsSlice(draggableList.current!, prevIndex, chosenItemIndex.current).forEach(
+          (item) => {
+            animate(
+              item as HTMLElement,
+              'up',
+              (chosenItem.current!.clientHeight / item.clientHeight) * 100,
+            )
+          },
+        )
+        animate(
+          chosenItem.current!,
+          'down',
+          (hoveringItem.current!.clientHeight / chosenItem.current!.clientHeight) * 100,
+        )
+        latestMovingDirection.current = 'up'
+      } else {
+        hoveringItem.current!.before(chosenItem.current!)
+        chosenItemIndex.current = getItemIndex(chosenItem.current!)
+
+        getItemsSlice(draggableList.current!, chosenItemIndex.current + 1, prevIndex + 1).forEach(
+          (item) => {
+            animate(
+              item as HTMLElement,
+              'down',
+              (chosenItem.current!.clientHeight / item.clientHeight) * 100,
+            )
+          },
+        )
+        animate(
+          chosenItem.current!,
+          'up',
+          (hoveringItem.current!.clientHeight / chosenItem.current!.clientHeight) * 100,
+        )
+        latestMovingDirection.current = 'down'
+      }
     }
   }
 
