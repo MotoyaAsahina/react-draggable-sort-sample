@@ -6,7 +6,7 @@ export default function NavigationButton(props: { path: string; name: string }) 
 
   return (
     <div
-      className="px-4 py-2 rounded-md shadow-xl cursor-pointer bg-white hover:bg-blue-50 transition-300"
+      className="px-3 py-1.5 rounded-md shadow-xl cursor-pointer bg-white hover:bg-blue-50 transition-300"
       onClick={() =>
         navigate(
           path.startsWith('/react-draggable-sort-sample')

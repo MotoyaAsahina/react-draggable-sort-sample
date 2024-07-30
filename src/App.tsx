@@ -1,6 +1,7 @@
 import { createContext, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 
+import DraggableList from '@/components/DraggableList'
 import MultiHeightPanel from '@/components/MultiHeightPanel'
 import Panel from '@/components/Panel'
 import SimplePanel from '@/components/SimplePanel'
@@ -26,17 +27,14 @@ const animals = [
 
 export const DragContext = createContext<{
   chosenItem: React.MutableRefObject<HTMLElement | null>
-  chosenItemIndex: React.MutableRefObject<number | null>
   chosenItemParent: React.MutableRefObject<HTMLDivElement | null>
 }>({
   chosenItem: { current: null },
-  chosenItemIndex: { current: null },
   chosenItemParent: { current: null },
 })
 
 export default function App() {
   const chosenItem = useRef<HTMLElement | null>(null)
-  const chosenItemIndex = useRef<number | null>(null)
   const chosenItemParent = useRef<HTMLDivElement | null>(null)
 
   const path = useLocation().pathname
@@ -61,17 +59,57 @@ export default function App() {
     )
   }
 
+  if (path == '/complete' || path == '/react-draggable-sort-sample/complete') {
+    return (
+      <div className="bg-gradient-to-br from-blue-500 via-green-500 to-yellow-200 overflow-x-scroll relative">
+        <div className="w-fit h-screen my-0 mx-auto p-8 flex place-items-center justify-center text-center gap-8">
+          <DragContext.Provider value={{ chosenItem, chosenItemParent }}>
+            <DraggableList className="w-88 h-full max-h-120 px-4 py-2 rounded-md bg-white shadow-xl overflow-y-scroll">
+              {fruits.map((item, index) => (
+                <div
+                  key={index}
+                  className={
+                    'my-2.5 p-2 rounded-md bg-blue-50 shadow-sm shadow-blueGray shadow-op-50 cursor-pointer' +
+                    [' h-10', ' h-16', ' h-22'][index % 3]
+                  }
+                >
+                  <p className="text-gray-7">{item}</p>
+                </div>
+              ))}
+            </DraggableList>
+            <DraggableList className="w-88 h-full max-h-120 px-4 py-2 rounded-md bg-white shadow-xl overflow-y-scroll">
+              {animals
+                .map((v) => v.toUpperCase())
+                .map((item, index) => (
+                  <div
+                    key={index}
+                    className={
+                      'my-2.5 p-2 rounded-md bg-blue-50 shadow-sm shadow-blueGray shadow-op-50 cursor-pointer' +
+                      [' h-10', ' h-16', ' h-22'][index % 3]
+                    }
+                  >
+                    <p className="text-gray-7">{item}</p>
+                  </div>
+                ))}
+            </DraggableList>
+          </DragContext.Provider>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-gradient-to-br from-blue-500 via-green-500 to-yellow-200 overflow-x-scroll relative">
       {/* Button */}
-      <div className="m-8 absolute right-0 bottom-0 flex flex-col gap-4">
+      <div className="m-6 absolute right-0 bottom-0 flex flex-col gap-3">
         <NavigationButton path="simple" name="Simple version" />
         <NavigationButton path="multi" name="Multi-height version" />
+        <NavigationButton path="complete" name="Complete version" />
       </div>
 
       {/* Panels */}
       <div className="w-fit h-screen my-0 mx-auto p-8 flex place-items-center justify-center text-center gap-8">
-        <DragContext.Provider value={{ chosenItem, chosenItemIndex, chosenItemParent }}>
+        <DragContext.Provider value={{ chosenItem, chosenItemParent }}>
           <Panel items={fruits} />
           <Panel items={animals.map((v) => v.toUpperCase())} />
         </DragContext.Provider>
