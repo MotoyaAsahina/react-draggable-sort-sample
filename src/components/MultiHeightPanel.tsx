@@ -24,6 +24,10 @@ export default function MultiHeightPanel(props: PanelProps) {
   const chosenItem = useRef<HTMLElement | null>(null)
   const chosenItemIndex = useRef<number | null>(null)
 
+  const isStayingChangedItem = useRef(false)
+  const latestChangedItem = useRef<HTMLElement | null>(null)
+  const latestMovingDirection = useRef<'up' | 'down'>('up')
+
   const getItemIndex = (item: HTMLElement) =>
     Array.from(draggableList.current?.children ?? []).indexOf(item)
 
@@ -43,6 +47,8 @@ export default function MultiHeightPanel(props: PanelProps) {
     for (const anim of target?.getAnimations() ?? []) {
       if (anim.playState === 'running') return
     }
+
+    if (isStayingChangedItem.current) return
 
     const prevIndex = chosenItemIndex.current!
 
@@ -64,6 +70,7 @@ export default function MultiHeightPanel(props: PanelProps) {
         'down',
         (target.clientHeight / chosenItem.current!.clientHeight) * 100,
       )
+      latestMovingDirection.current = 'down'
     } else {
       target.before(chosenItem.current!)
       chosenItemIndex.current = getItemIndex(chosenItem.current!)
@@ -84,6 +91,67 @@ export default function MultiHeightPanel(props: PanelProps) {
         'up',
         (target.clientHeight / chosenItem.current!.clientHeight) * 100,
       )
+      latestMovingDirection.current = 'up'
+    }
+
+    latestChangedItem.current = target
+
+    if (chosenItem.current!.clientHeight <= target.clientHeight) isStayingChangedItem.current = true
+  }
+
+  const onDrag = (e: React.DragEvent<HTMLDivElement>) => {
+    for (const anim of latestChangedItem.current?.getAnimations() ?? []) {
+      if (anim.playState === 'running') return
+    }
+
+    if (!isStayingChangedItem.current) return
+
+    const mouseY = e.pageY
+    const largeItemY = latestChangedItem.current!.getBoundingClientRect().top
+    const largeItemBottom = latestChangedItem.current!.getBoundingClientRect().bottom
+    const chosenItemHeight = chosenItem.current!.clientHeight
+
+    if (latestMovingDirection.current === 'down' && mouseY < largeItemY + chosenItemHeight) {
+      console.log('onDrag', 'return up')
+
+      latestChangedItem.current!.before(chosenItem.current!)
+      chosenItemIndex.current! -= 1
+
+      animate(
+        chosenItem.current!,
+        'up',
+        (latestChangedItem.current!.clientHeight / chosenItem.current!.clientHeight) * 100,
+      )
+      animate(
+        latestChangedItem.current!,
+        'down',
+        (chosenItem.current!.clientHeight / latestChangedItem.current!.clientHeight) * 100,
+      )
+
+      isStayingChangedItem.current = false
+    } else if (latestMovingDirection.current === 'up' && mouseY > largeItemY + chosenItemHeight) {
+      console.log('onDrag', 'return down')
+
+      latestChangedItem.current!.after(chosenItem.current!)
+      chosenItemIndex.current! += 1
+
+      animate(
+        chosenItem.current!,
+        'down',
+        (latestChangedItem.current!.clientHeight / chosenItem.current!.clientHeight) * 100,
+      )
+      animate(
+        latestChangedItem.current!,
+        'up',
+        (chosenItem.current!.clientHeight / latestChangedItem.current!.clientHeight) * 100,
+      )
+
+      isStayingChangedItem.current = false
+    }
+
+    if (mouseY < largeItemY || mouseY > largeItemBottom) {
+      isStayingChangedItem.current = false
+      // TODO: Fix the bug that the item is not animated when the mouse is moved too fast
     }
   }
 
@@ -106,6 +174,7 @@ export default function MultiHeightPanel(props: PanelProps) {
           draggable
           onDragStart={dragStart}
           onDragEnter={dragEnter}
+          onDrag={onDrag}
         >
           <p className="text-gray-7">{item}</p>
         </div>
