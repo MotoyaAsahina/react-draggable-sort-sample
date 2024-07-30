@@ -112,6 +112,7 @@ export default function MultiHeightPanel(props: PanelProps) {
     const mouseY = e.pageY
     const largeItemY = latestChangedItem.current!.getBoundingClientRect().top
     const largeItemBottom = latestChangedItem.current!.getBoundingClientRect().bottom
+    const largeItemHeight = latestChangedItem.current!.clientHeight
     const chosenItemHeight = chosenItem.current!.clientHeight
 
     if (latestMovingDirection.current === 'down' && mouseY < largeItemY + chosenItemHeight) {
@@ -132,7 +133,10 @@ export default function MultiHeightPanel(props: PanelProps) {
       )
 
       isStayingChangedItem.current = false
-    } else if (latestMovingDirection.current === 'up' && mouseY > largeItemY + chosenItemHeight) {
+    } else if (
+      latestMovingDirection.current === 'up' &&
+      mouseY > largeItemY + (largeItemHeight - chosenItemHeight)
+    ) {
       console.log('onDrag', 'return down')
 
       latestChangedItem.current!.after(chosenItem.current!)
