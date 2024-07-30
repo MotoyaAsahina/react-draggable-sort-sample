@@ -21,7 +21,6 @@ const animate = (item: HTMLElement, direction: 'up' | 'down', sizePercent: numbe
 export default function MultiHeightPanel(props: PanelProps) {
   const draggableList = useRef<HTMLDivElement>(null)
 
-  const hoveringItem = useRef<HTMLElement | null>(null)
   const chosenItem = useRef<HTMLElement | null>(null)
   const chosenItemIndex = useRef<number | null>(null)
 
@@ -43,7 +42,6 @@ export default function MultiHeightPanel(props: PanelProps) {
 
   const dragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     const target = e.currentTarget as HTMLElement
-    hoveringItem.current = target
 
     if (chosenItem.current === target) return
 
@@ -51,7 +49,11 @@ export default function MultiHeightPanel(props: PanelProps) {
       if (anim.playState === 'running') return
     }
 
-    if (isStayingChangedItem.current) return
+    if (
+      isStayingChangedItem.current &&
+      (target === latestChangedItem.current || target === chosenItem.current)
+    )
+      return
 
     const prevIndex = chosenItemIndex.current!
 
@@ -120,6 +122,7 @@ export default function MultiHeightPanel(props: PanelProps) {
 
       latestChangedItem.current!.before(chosenItem.current!)
       chosenItemIndex.current! -= 1
+      isStayingChangedItem.current = false
 
       animate(
         chosenItem.current!,
@@ -131,8 +134,6 @@ export default function MultiHeightPanel(props: PanelProps) {
         'down',
         (chosenItem.current!.clientHeight / latestChangedItem.current!.clientHeight) * 100,
       )
-
-      isStayingChangedItem.current = false
     } else if (
       latestMovingDirection.current === 'up' &&
       mouseY > largeItemY + (largeItemHeight - chosenItemHeight)
@@ -141,6 +142,7 @@ export default function MultiHeightPanel(props: PanelProps) {
 
       latestChangedItem.current!.after(chosenItem.current!)
       chosenItemIndex.current! += 1
+      isStayingChangedItem.current = false
 
       animate(
         chosenItem.current!,
@@ -152,60 +154,10 @@ export default function MultiHeightPanel(props: PanelProps) {
         'up',
         (chosenItem.current!.clientHeight / latestChangedItem.current!.clientHeight) * 100,
       )
-
-      isStayingChangedItem.current = false
     }
 
     if (mouseY < largeItemY || mouseY > largeItemBottom) {
       isStayingChangedItem.current = false
-
-      if (
-        hoveringItem.current === chosenItem.current ||
-        hoveringItem.current === latestChangedItem.current
-      ) {
-        return
-      }
-
-      const prevIndex = chosenItemIndex.current!
-      if (prevIndex < getItemIndex(hoveringItem.current!)) {
-        hoveringItem.current!.after(chosenItem.current!)
-        chosenItemIndex.current = getItemIndex(chosenItem.current!)
-
-        getItemsSlice(draggableList.current!, prevIndex, chosenItemIndex.current).forEach(
-          (item) => {
-            animate(
-              item as HTMLElement,
-              'up',
-              (chosenItem.current!.clientHeight / item.clientHeight) * 100,
-            )
-          },
-        )
-        animate(
-          chosenItem.current!,
-          'down',
-          (hoveringItem.current!.clientHeight / chosenItem.current!.clientHeight) * 100,
-        )
-        latestMovingDirection.current = 'up'
-      } else {
-        hoveringItem.current!.before(chosenItem.current!)
-        chosenItemIndex.current = getItemIndex(chosenItem.current!)
-
-        getItemsSlice(draggableList.current!, chosenItemIndex.current + 1, prevIndex + 1).forEach(
-          (item) => {
-            animate(
-              item as HTMLElement,
-              'down',
-              (chosenItem.current!.clientHeight / item.clientHeight) * 100,
-            )
-          },
-        )
-        animate(
-          chosenItem.current!,
-          'up',
-          (hoveringItem.current!.clientHeight / chosenItem.current!.clientHeight) * 100,
-        )
-        latestMovingDirection.current = 'down'
-      }
     }
   }
 
