@@ -4,6 +4,9 @@ type PanelProps = {
   items: string[]
 }
 
+const getItemsSlice = (list: HTMLDivElement, start: number, end?: number) =>
+  Array.from(list.children).slice(start, end ?? list.childElementCount)
+
 const animate = (item: HTMLElement, direction: 'up' | 'down', sizePercent: number = 100) => {
   item.animate(
     [
@@ -16,6 +19,29 @@ const animate = (item: HTMLElement, direction: 'up' | 'down', sizePercent: numbe
       fill: 'forwards',
     },
   )
+}
+
+const moveItems = (list: HTMLDivElement, prevIndex: number, newIndex: number) => {
+  const item = list.children[prevIndex]
+  const target = list.children[newIndex]
+
+  const itemHeight = item.clientHeight
+
+  if (prevIndex < newIndex) {
+    target.after(item)
+
+    getItemsSlice(list, prevIndex, newIndex).forEach((item) => {
+      animate(item as HTMLElement, 'up', (itemHeight / item.clientHeight) * 100)
+    })
+    animate(item as HTMLElement, 'down', (target.clientHeight / itemHeight) * 100)
+  } else {
+    target.before(item)
+
+    getItemsSlice(list, newIndex + 1, prevIndex + 1).forEach((item) => {
+      animate(item as HTMLElement, 'down', (itemHeight / item.clientHeight) * 100)
+    })
+    animate(item as HTMLElement, 'up', (target.clientHeight / itemHeight) * 100)
+  }
 }
 
 export default function MultiHeightPanel(props: PanelProps) {
@@ -31,9 +57,6 @@ export default function MultiHeightPanel(props: PanelProps) {
   const getItemIndex = (item: HTMLElement) =>
     Array.from(draggableList.current?.children ?? []).indexOf(item)
 
-  const getItemsSlice = (list: HTMLDivElement, start: number, end?: number) =>
-    Array.from(list.children).slice(start, end ?? list.childElementCount)
-
   const dragStart = (e: React.DragEvent<HTMLDivElement>) => {
     chosenItem.current = e.currentTarget
     chosenItemIndex.current = getItemIndex(e.currentTarget)
@@ -43,65 +66,25 @@ export default function MultiHeightPanel(props: PanelProps) {
   const dragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     const target = e.currentTarget as HTMLElement
 
-    if (chosenItem.current === target) return
+    if (target === chosenItem.current) return
+    if (isStayingChangedItem.current && target === latestChangedItem.current) return
 
     for (const anim of target?.getAnimations() ?? []) {
       if (anim.playState === 'running') return
     }
 
-    if (
-      isStayingChangedItem.current &&
-      (target === latestChangedItem.current || target === chosenItem.current)
-    )
-      return
-
     const prevIndex = chosenItemIndex.current!
+    const newIndex = getItemIndex(target)
 
-    if (prevIndex < getItemIndex(target)) {
-      target.after(chosenItem.current!)
-      chosenItemIndex.current = getItemIndex(chosenItem.current!)
+    moveItems(draggableList.current!, prevIndex, newIndex)
+    chosenItemIndex.current = newIndex
 
-      console.log('dragEnter', prevIndex, chosenItemIndex.current)
-
-      getItemsSlice(draggableList.current!, prevIndex, chosenItemIndex.current).forEach((item) => {
-        animate(
-          item as HTMLElement,
-          'up',
-          (chosenItem.current!.clientHeight / item.clientHeight) * 100,
-        )
-      })
-      animate(
-        chosenItem.current!,
-        'down',
-        (target.clientHeight / chosenItem.current!.clientHeight) * 100,
-      )
-      latestMovingDirection.current = 'down'
-    } else {
-      target.before(chosenItem.current!)
-      chosenItemIndex.current = getItemIndex(chosenItem.current!)
-
-      console.log('dragEnter', prevIndex, chosenItemIndex.current)
-
-      getItemsSlice(draggableList.current!, chosenItemIndex.current + 1, prevIndex + 1).forEach(
-        (item) => {
-          animate(
-            item as HTMLElement,
-            'down',
-            (chosenItem.current!.clientHeight / item.clientHeight) * 100,
-          )
-        },
-      )
-      animate(
-        chosenItem.current!,
-        'up',
-        (target.clientHeight / chosenItem.current!.clientHeight) * 100,
-      )
-      latestMovingDirection.current = 'up'
-    }
-
+    latestMovingDirection.current = prevIndex < newIndex ? 'down' : 'up'
     latestChangedItem.current = target
 
     if (chosenItem.current!.clientHeight <= target.clientHeight) isStayingChangedItem.current = true
+
+    console.log('dragEnter', prevIndex, newIndex)
   }
 
   const onDrag = (e: React.DragEvent<HTMLDivElement>) => {
@@ -118,42 +101,22 @@ export default function MultiHeightPanel(props: PanelProps) {
     const chosenItemHeight = chosenItem.current!.clientHeight
 
     if (latestMovingDirection.current === 'down' && mouseY < largeItemY + chosenItemHeight) {
-      console.log('onDrag', 'return up')
-
-      latestChangedItem.current!.before(chosenItem.current!)
+      moveItems(draggableList.current!, chosenItemIndex.current!, chosenItemIndex.current! - 1)
       chosenItemIndex.current! -= 1
+
       isStayingChangedItem.current = false
 
-      animate(
-        chosenItem.current!,
-        'up',
-        (latestChangedItem.current!.clientHeight / chosenItem.current!.clientHeight) * 100,
-      )
-      animate(
-        latestChangedItem.current!,
-        'down',
-        (chosenItem.current!.clientHeight / latestChangedItem.current!.clientHeight) * 100,
-      )
+      console.log('onDrag', 'return up')
     } else if (
       latestMovingDirection.current === 'up' &&
       mouseY > largeItemY + (largeItemHeight - chosenItemHeight)
     ) {
-      console.log('onDrag', 'return down')
-
-      latestChangedItem.current!.after(chosenItem.current!)
+      moveItems(draggableList.current!, chosenItemIndex.current!, chosenItemIndex.current! + 1)
       chosenItemIndex.current! += 1
+
       isStayingChangedItem.current = false
 
-      animate(
-        chosenItem.current!,
-        'down',
-        (latestChangedItem.current!.clientHeight / chosenItem.current!.clientHeight) * 100,
-      )
-      animate(
-        latestChangedItem.current!,
-        'up',
-        (chosenItem.current!.clientHeight / latestChangedItem.current!.clientHeight) * 100,
-      )
+      console.log('onDrag', 'return down')
     }
 
     if (mouseY < largeItemY || mouseY > largeItemBottom) {
