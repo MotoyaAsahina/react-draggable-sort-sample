@@ -48,7 +48,6 @@ export default function MultiHeightPanel(props: PanelProps) {
   const draggableList = useRef<HTMLDivElement>(null)
 
   const chosenItem = useRef<HTMLElement | null>(null)
-  const chosenItemIndex = useRef<number | null>(null)
 
   const isStayingChangedItem = useRef(false)
   const latestChangedItem = useRef<HTMLElement | null>(null)
@@ -59,8 +58,7 @@ export default function MultiHeightPanel(props: PanelProps) {
 
   const dragStart = (e: React.DragEvent<HTMLDivElement>) => {
     chosenItem.current = e.currentTarget
-    chosenItemIndex.current = getItemIndex(e.currentTarget)
-    console.log('dragStart', chosenItemIndex.current)
+    console.log('dragStart', getItemIndex(e.currentTarget))
   }
 
   const dragEnter = (e: React.DragEvent<HTMLDivElement>) => {
@@ -73,11 +71,10 @@ export default function MultiHeightPanel(props: PanelProps) {
       if (anim.playState === 'running') return
     }
 
-    const prevIndex = chosenItemIndex.current!
+    const prevIndex = getItemIndex(chosenItem.current!)
     const newIndex = getItemIndex(target)
 
     moveItems(draggableList.current!, prevIndex, newIndex)
-    chosenItemIndex.current = newIndex
 
     latestMovingDirection.current = prevIndex < newIndex ? 'down' : 'up'
     latestChangedItem.current = target
@@ -101,22 +98,22 @@ export default function MultiHeightPanel(props: PanelProps) {
     const chosenItemHeight = chosenItem.current!.clientHeight
 
     if (latestMovingDirection.current === 'down' && mouseY < largeItemY + chosenItemHeight) {
-      moveItems(draggableList.current!, chosenItemIndex.current!, chosenItemIndex.current! - 1)
-      chosenItemIndex.current! -= 1
+      const prevIndex = getItemIndex(chosenItem.current!)
+      moveItems(draggableList.current!, prevIndex, prevIndex - 1)
 
       isStayingChangedItem.current = false
 
-      console.log('onDrag', 'return up')
+      console.log('dragEnter', prevIndex, prevIndex - 1)
     } else if (
       latestMovingDirection.current === 'up' &&
       mouseY > largeItemY + (largeItemHeight - chosenItemHeight)
     ) {
-      moveItems(draggableList.current!, chosenItemIndex.current!, chosenItemIndex.current! + 1)
-      chosenItemIndex.current! += 1
+      const prevIndex = getItemIndex(chosenItem.current!)
+      moveItems(draggableList.current!, prevIndex, prevIndex + 1)
 
       isStayingChangedItem.current = false
 
-      console.log('onDrag', 'return down')
+      console.log('dragEnter', prevIndex, prevIndex + 1)
     }
 
     if (mouseY < largeItemY || mouseY > largeItemBottom) {
