@@ -1,6 +1,7 @@
 import { createContext, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 
+import DraggableItem from '@/components/DraggableItem'
 import DraggableList from '@/components/DraggableList'
 import MultiHeightPanel from '@/components/MultiHeightPanel'
 import Panel from '@/components/Panel'
@@ -84,30 +85,36 @@ export default function App() {
           >
             <DraggableList className="w-88 h-full max-h-120 px-4 py-2 rounded-md bg-white shadow-xl overflow-y-scroll">
               {fruits.map((item, index) => (
-                <div
+                <DraggableItem
                   key={index}
                   className={
                     'my-2.5 p-2 rounded-md bg-blue-50 shadow-sm shadow-blueGray shadow-op-50 cursor-pointer' +
                     [' h-10', ' h-16', ' h-22'][index % 3]
                   }
+                  onDrop={(newIndex) => {
+                    console.log(newIndex)
+                  }}
                 >
                   <p className="text-gray-7">{item}</p>
-                </div>
+                </DraggableItem>
               ))}
             </DraggableList>
             <DraggableList className="w-88 h-full max-h-120 px-4 py-2 rounded-md bg-white shadow-xl overflow-y-scroll">
               {animals
                 .map((v) => v.toUpperCase())
                 .map((item, index) => (
-                  <div
+                  <DraggableItem
                     key={index}
                     className={
                       'my-2.5 p-2 rounded-md bg-blue-50 shadow-sm shadow-blueGray shadow-op-50 cursor-pointer' +
                       [' h-10', ' h-16', ' h-22'][index % 3]
                     }
+                    onDrop={(newIndex) => {
+                      console.log(newIndex)
+                    }}
                   >
                     <p className="text-gray-7">{item}</p>
-                  </div>
+                  </DraggableItem>
                 ))}
             </DraggableList>
           </DragContext.Provider>

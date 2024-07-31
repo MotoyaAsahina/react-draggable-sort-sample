@@ -175,13 +175,14 @@ export default function DraggableList(props: DraggableListProps) {
       }}
     >
       {props.children.map((child, index) => (
-        <child.type
+        <div
           key={index}
           {...child.props}
           draggable
           onDragStart={dragStart}
           onDragEnter={dragEnter}
           onDrag={onDrag}
+          onDrop={() => child.props.onDrop(getItemIndex(chosenItem.current!))}
         />
       ))}
     </div>
