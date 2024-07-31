@@ -29,12 +29,16 @@ const animals = [
 export const DragContext = createContext<{
   chosenItem: React.MutableRefObject<HTMLElement | null>
   chosenItemParent: React.MutableRefObject<HTMLDivElement | null>
+  chosenItemParentId: React.MutableRefObject<number | null>
+  chosenItemParentGroup: React.MutableRefObject<string | null>
   isStayingChangedItem: React.MutableRefObject<boolean>
   latestChangedItem: React.MutableRefObject<HTMLElement | null>
   latestMovingDirection: React.MutableRefObject<'up' | 'down'>
 }>({
   chosenItem: { current: null },
   chosenItemParent: { current: null },
+  chosenItemParentId: { current: null },
+  chosenItemParentGroup: { current: null },
   isStayingChangedItem: { current: false },
   latestChangedItem: { current: null },
   latestMovingDirection: { current: 'up' },
@@ -43,6 +47,9 @@ export const DragContext = createContext<{
 export default function App() {
   const chosenItem = useRef<HTMLElement | null>(null)
   const chosenItemParent = useRef<HTMLDivElement | null>(null)
+
+  const chosenItemParentId = useRef<number | null>(null)
+  const chosenItemParentGroup = useRef<string | null>(null)
 
   const isStayingChangedItem = useRef(false)
   const latestChangedItem = useRef<HTMLElement | null>(null)
@@ -78,12 +85,18 @@ export default function App() {
             value={{
               chosenItem,
               chosenItemParent,
+              chosenItemParentId,
+              chosenItemParentGroup,
               isStayingChangedItem,
               latestChangedItem,
               latestMovingDirection,
             }}
           >
-            <DraggableList className="w-88 h-full max-h-120 px-4 py-2 rounded-md bg-white shadow-xl overflow-y-scroll">
+            <DraggableList
+              className="w-88 h-full max-h-120 px-4 py-2 rounded-md bg-white shadow-xl overflow-y-scroll"
+              listId={1}
+              group="a"
+            >
               {fruits.map((item, index) => (
                 <DraggableItem
                   key={index}
@@ -91,15 +104,19 @@ export default function App() {
                     'my-2.5 p-2 rounded-md bg-blue-50 shadow-sm shadow-blueGray shadow-op-50 cursor-pointer' +
                     [' h-10', ' h-16', ' h-22'][index % 3]
                   }
-                  onDrop={(newIndex) => {
-                    console.log(newIndex)
+                  onDrop={(parentId, newIndex) => {
+                    console.log(parentId, newIndex)
                   }}
                 >
                   <p className="text-gray-7">{item}</p>
                 </DraggableItem>
               ))}
             </DraggableList>
-            <DraggableList className="w-88 h-full max-h-120 px-4 py-2 rounded-md bg-white shadow-xl overflow-y-scroll">
+            <DraggableList
+              className="w-88 h-full max-h-120 px-4 py-2 rounded-md bg-white shadow-xl overflow-y-scroll"
+              listId={2}
+              group="a"
+            >
               {animals
                 .map((v) => v.toUpperCase())
                 .map((item, index) => (
@@ -109,13 +126,33 @@ export default function App() {
                       'my-2.5 p-2 rounded-md bg-blue-50 shadow-sm shadow-blueGray shadow-op-50 cursor-pointer' +
                       [' h-10', ' h-16', ' h-22'][index % 3]
                     }
-                    onDrop={(newIndex) => {
-                      console.log(newIndex)
+                    onDrop={(parentId, newIndex) => {
+                      console.log(parentId, newIndex)
                     }}
                   >
                     <p className="text-gray-7">{item}</p>
                   </DraggableItem>
                 ))}
+            </DraggableList>
+            <DraggableList
+              className="w-88 h-full max-h-120 px-4 py-2 rounded-md bg-white shadow-xl overflow-y-scroll"
+              listId={2}
+              group="b"
+            >
+              {animals.map((item, index) => (
+                <DraggableItem
+                  key={index}
+                  className={
+                    'my-2.5 p-2 rounded-md bg-blue-50 shadow-sm shadow-blueGray shadow-op-50 cursor-pointer' +
+                    [' h-10', ' h-16', ' h-22'][index % 3]
+                  }
+                  onDrop={(parentId, newIndex) => {
+                    console.log(parentId, newIndex)
+                  }}
+                >
+                  <p className="text-gray-7">{item}</p>
+                </DraggableItem>
+              ))}
             </DraggableList>
           </DragContext.Provider>
         </div>
@@ -138,6 +175,8 @@ export default function App() {
           value={{
             chosenItem,
             chosenItemParent,
+            chosenItemParentId,
+            chosenItemParentGroup,
             isStayingChangedItem,
             latestChangedItem,
             latestMovingDirection,

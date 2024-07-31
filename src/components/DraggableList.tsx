@@ -5,6 +5,8 @@ import { DragContext } from '@/App'
 type DraggableListProps = {
   className: string
   children: React.ReactElement[]
+  listId: number
+  group: string
 }
 
 const getItemsSlice = (list: HTMLDivElement, start: number, end?: number) =>
@@ -53,6 +55,8 @@ export default function DraggableList(props: DraggableListProps) {
   const {
     chosenItem,
     chosenItemParent,
+    chosenItemParentId,
+    chosenItemParentGroup,
     isStayingChangedItem,
     latestChangedItem,
     latestMovingDirection,
@@ -68,6 +72,8 @@ export default function DraggableList(props: DraggableListProps) {
   const dragStart = (e: React.DragEvent<HTMLDivElement>) => {
     chosenItem.current = e.currentTarget
     chosenItemParent.current = draggableList.current
+    chosenItemParentId.current = props.listId
+    chosenItemParentGroup.current = props.group
     console.log('dragStart', getItemIndex(e.currentTarget))
   }
 
@@ -83,6 +89,10 @@ export default function DraggableList(props: DraggableListProps) {
 
     if (chosenItemParent.current !== draggableList.current) {
       console.log('dragEnter', 'different parent')
+
+      if (chosenItemParentGroup.current !== props.group) return
+
+      chosenItemParentId.current = props.listId
 
       const prevIndex = getItemIndex(chosenItem.current!)
       target.before(chosenItem.current!)
@@ -182,7 +192,9 @@ export default function DraggableList(props: DraggableListProps) {
           onDragStart={dragStart}
           onDragEnter={dragEnter}
           onDrag={onDrag}
-          onDrop={() => child.props.onDrop(getItemIndex(chosenItem.current!))}
+          onDrop={() =>
+            child.props.onDrop(chosenItemParentId.current, getItemIndex(chosenItem.current!))
+          }
         />
       ))}
     </div>
