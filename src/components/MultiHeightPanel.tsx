@@ -79,7 +79,9 @@ export default function MultiHeightPanel(props: PanelProps) {
     latestMovingDirection.current = prevIndex < newIndex ? 'down' : 'up'
     latestChangedItem.current = target
 
-    if (chosenItem.current!.clientHeight <= target.clientHeight) isStayingChangedItem.current = true
+    if (chosenItem.current!.clientHeight <= target.clientHeight) {
+      isStayingChangedItem.current = true
+    }
 
     console.log('dragEnter', prevIndex, newIndex)
   }

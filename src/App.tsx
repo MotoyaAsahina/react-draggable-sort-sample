@@ -28,14 +28,24 @@ const animals = [
 export const DragContext = createContext<{
   chosenItem: React.MutableRefObject<HTMLElement | null>
   chosenItemParent: React.MutableRefObject<HTMLDivElement | null>
+  isStayingChangedItem: React.MutableRefObject<boolean>
+  latestChangedItem: React.MutableRefObject<HTMLElement | null>
+  latestMovingDirection: React.MutableRefObject<'up' | 'down'>
 }>({
   chosenItem: { current: null },
   chosenItemParent: { current: null },
+  isStayingChangedItem: { current: false },
+  latestChangedItem: { current: null },
+  latestMovingDirection: { current: 'up' },
 })
 
 export default function App() {
   const chosenItem = useRef<HTMLElement | null>(null)
   const chosenItemParent = useRef<HTMLDivElement | null>(null)
+
+  const isStayingChangedItem = useRef(false)
+  const latestChangedItem = useRef<HTMLElement | null>(null)
+  const latestMovingDirection = useRef<'up' | 'down'>('up')
 
   const path = useLocation().pathname
 
@@ -63,7 +73,15 @@ export default function App() {
     return (
       <div className="bg-gradient-to-br from-blue-500 via-green-500 to-yellow-200 overflow-x-scroll relative">
         <div className="w-fit h-screen my-0 mx-auto p-8 flex place-items-center justify-center text-center gap-8">
-          <DragContext.Provider value={{ chosenItem, chosenItemParent }}>
+          <DragContext.Provider
+            value={{
+              chosenItem,
+              chosenItemParent,
+              isStayingChangedItem,
+              latestChangedItem,
+              latestMovingDirection,
+            }}
+          >
             <DraggableList className="w-88 h-full max-h-120 px-4 py-2 rounded-md bg-white shadow-xl overflow-y-scroll">
               {fruits.map((item, index) => (
                 <div
@@ -109,7 +127,15 @@ export default function App() {
 
       {/* Panels */}
       <div className="w-fit h-screen my-0 mx-auto p-8 flex place-items-center justify-center text-center gap-8">
-        <DragContext.Provider value={{ chosenItem, chosenItemParent }}>
+        <DragContext.Provider
+          value={{
+            chosenItem,
+            chosenItemParent,
+            isStayingChangedItem,
+            latestChangedItem,
+            latestMovingDirection,
+          }}
+        >
           <Panel items={fruits} />
           <Panel items={animals.map((v) => v.toUpperCase())} />
         </DragContext.Provider>

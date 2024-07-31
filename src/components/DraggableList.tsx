@@ -1,4 +1,6 @@
-import { useRef } from 'react'
+import { useContext, useRef } from 'react'
+
+import { DragContext } from '@/App'
 
 type DraggableListProps = {
   className: string
@@ -48,17 +50,24 @@ const moveItems = (list: HTMLDivElement, prevIndex: number, newIndex: number) =>
 export default function DraggableList(props: DraggableListProps) {
   const draggableList = useRef<HTMLDivElement>(null)
 
-  const chosenItem = useRef<HTMLElement | null>(null)
+  const {
+    chosenItem,
+    chosenItemParent,
+    isStayingChangedItem,
+    latestChangedItem,
+    latestMovingDirection,
+  } = useContext(DragContext)
 
-  const isStayingChangedItem = useRef(false)
-  const latestChangedItem = useRef<HTMLElement | null>(null)
-  const latestMovingDirection = useRef<'up' | 'down'>('up')
-
-  const getItemIndex = (item: HTMLElement) =>
-    Array.from(draggableList.current?.children ?? []).indexOf(item)
+  const getItemIndex = (item: HTMLElement) => {
+    return (
+      (Array.from(draggableList.current!.children).indexOf(item) + 1 ||
+        Array.from(chosenItemParent.current!.children).indexOf(item) + 1) - 1
+    )
+  }
 
   const dragStart = (e: React.DragEvent<HTMLDivElement>) => {
     chosenItem.current = e.currentTarget
+    chosenItemParent.current = draggableList.current
     console.log('dragStart', getItemIndex(e.currentTarget))
   }
 
@@ -70,6 +79,40 @@ export default function DraggableList(props: DraggableListProps) {
 
     for (const anim of target?.getAnimations() ?? []) {
       if (anim.playState === 'running') return
+    }
+
+    if (chosenItemParent.current !== draggableList.current) {
+      console.log('dragEnter', 'different parent')
+
+      const prevIndex = getItemIndex(chosenItem.current!)
+      target.before(chosenItem.current!)
+
+      getItemsSlice(chosenItemParent.current!, prevIndex).forEach((item) => {
+        animate(
+          item as HTMLElement,
+          'up',
+          (chosenItem.current!.clientHeight / item.clientHeight) * 100,
+        )
+      })
+
+      const newIndex = getItemIndex(chosenItem.current!)
+      chosenItemParent.current = draggableList.current
+
+      getItemsSlice(draggableList.current!, newIndex + 1).forEach((item) => {
+        animate(
+          item as HTMLElement,
+          'down',
+          (chosenItem.current!.clientHeight / item.clientHeight) * 100,
+        )
+      })
+
+      latestMovingDirection.current = 'up'
+      latestChangedItem.current = target
+      if (chosenItem.current!.clientHeight <= target.clientHeight) {
+        isStayingChangedItem.current = true
+      }
+
+      return
     }
 
     const prevIndex = getItemIndex(chosenItem.current!)
@@ -100,7 +143,7 @@ export default function DraggableList(props: DraggableListProps) {
 
     if (latestMovingDirection.current === 'down' && mouseY < largeItemY + chosenItemHeight) {
       const prevIndex = getItemIndex(chosenItem.current!)
-      moveItems(draggableList.current!, prevIndex, prevIndex - 1)
+      moveItems(chosenItemParent.current!, prevIndex, prevIndex - 1)
 
       isStayingChangedItem.current = false
 
@@ -110,7 +153,7 @@ export default function DraggableList(props: DraggableListProps) {
       mouseY > largeItemY + (largeItemHeight - chosenItemHeight)
     ) {
       const prevIndex = getItemIndex(chosenItem.current!)
-      moveItems(draggableList.current!, prevIndex, prevIndex + 1)
+      moveItems(chosenItemParent.current!, prevIndex, prevIndex + 1)
 
       isStayingChangedItem.current = false
 
